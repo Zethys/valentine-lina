@@ -152,13 +152,14 @@ function growHeart(){
     const heart = document.getElementById("bigHeart");
     heart.style.fontSize = size + "px";
 
-    if(size > 200 && !isRed){
-        heart.innerHTML = "❤️";
-        isRed = true;
-    }
+    // уменьшенный максимум финального сердца
+const heart = document.getElementById("bigHeart");
+let interval = setInterval(()=>{
+    size += 5; // медленный рост
+    heart.style.fontSize = size + "px";
+    if(size > window.innerHeight*0.5) clearInterval(interval); // максимум 50% высоты
+},50);
 
-    if(size > 300 && !finalShown){
-        showFinal();
     }
 
     for(let i=0;i<10;i++) particles.push(createParticle());
@@ -276,3 +277,4 @@ animate();
 </script>
 </body>
 </html>
+
