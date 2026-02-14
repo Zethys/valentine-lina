@@ -30,7 +30,7 @@ canvas{
     z-index:0;
 }
 .big-heart{
-    font-size:120px;
+    font-size:80px;
     cursor:pointer;
     user-select:none;
     z-index:1;
@@ -46,9 +46,9 @@ canvas{
     z-index:1;
     background:rgba(255,255,255,0.15);
     backdrop-filter:blur(10px);
-    padding:25px;
-    border-radius:20px;
-    margin-top:15px;
+    padding:15px;
+    border-radius:15px;
+    margin-top:10px;
     text-align:center;
     transition:0.5s;
 }
@@ -57,7 +57,7 @@ canvas{
     top:50%;
     left:50%;
     transform:translate(-50%,-50%);
-    font-size:60px;
+    font-size:40px;
     font-weight:bold;
     color:white;
     text-align:center;
@@ -75,7 +75,7 @@ canvas{
 
 <div class="card">
     <h1>Лина 💖</h1>
-    <p>Тыкай на сердечко💕</p>
+    <p>Нажимай на сердце и смотри, как растёт любовь 💕</p>
 </div>
 
 <div id="finalText" class="final-text">Лина, будь моей навсегда! 💖</div>
@@ -87,7 +87,7 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 let particles = [];
-let size = 120;
+let size = 80; // стартовый размер
 let isRed = false;
 let texts = [];
 let finalShown = false;
@@ -110,26 +110,11 @@ function createParticle(){
     return {
         x: Math.random()*canvas.width,
         y: Math.random()*canvas.height,
-        size: Math.random()*15+8,
-        speedX: (Math.random()-0.5)*0.8,
-        speedY: (Math.random()-0.5)*0.8,
+        size: Math.random()*10+5,
+        speedX: (Math.random()-0.5)*0.5,
+        speedY: (Math.random()-0.5)*0.5,
         life: finalShown ? Infinity : 180,
         color: isRed ? "red" : "white",
-        sparkle: Math.random()<0.3
-    };
-}
-
-function createGradientParticle(){
-    const colors = ["#ff9ecb","#ff5e9c","#ffb3d9","#ff66a3"];
-    const color = colors[Math.floor(Math.random()*colors.length)];
-    return {
-        x: Math.random()*canvas.width,
-        y: Math.random()*canvas.height,
-        size: Math.random()*15+8,
-        speedX: (Math.random()-0.5)*1,
-        speedY: (Math.random()-0.5)*1,
-        life: finalShown ? Infinity : 180,
-        color: color,
         sparkle: Math.random()<0.3
     };
 }
@@ -138,9 +123,9 @@ function createFallingHeart(x,y){
     return {
         x: x,
         y: y,
-        size: Math.random()*15+5,
-        speedX: (Math.random()-0.5)*1,
-        speedY: Math.random()*2 + 1,
+        size: Math.random()*10+4,
+        speedX: (Math.random()-0.5)*0.5,
+        speedY: Math.random()*1 + 0.5,
         life: 180,
         color: "red",
         sparkle: true
@@ -158,29 +143,28 @@ function drawHeart(x,y,size,color,sparkle){
     ctx.fill();
     if(sparkle){
         ctx.fillStyle="white";
-        ctx.fillRect(x+Math.random()*10-5,y+Math.random()*10-5,2,2);
+        ctx.fillRect(x+Math.random()*6-3,y+Math.random()*6-3,2,2);
     }
 }
 
 function growHeart(){
-    size += 15;
+    size += 10; // медленный рост
     const heart = document.getElementById("bigHeart");
     heart.style.fontSize = size + "px";
 
-    if(size > 300 && !isRed){
+    if(size > 200 && !isRed){
         heart.innerHTML = "❤️";
         isRed = true;
     }
 
-    if(size > 500 && !finalShown){
+    if(size > 300 && !finalShown){
         showFinal();
     }
 
-    for(let i=0;i<15;i++) particles.push(createParticle());
-    for(let i=0;i<5;i++) particles.push(createGradientParticle());
+    for(let i=0;i<10;i++) particles.push(createParticle());
 
     const rect = heart.getBoundingClientRect();
-    for(let i=0;i<8;i++) particles.push(createFallingHeart(rect.left + rect.width/2, rect.top + rect.height/2));
+    for(let i=0;i<5;i++) particles.push(createFallingHeart(rect.left + rect.width/2, rect.top + rect.height/2));
 
     for(let i=0;i<2;i++) texts.push(createText());
 }
@@ -189,13 +173,13 @@ function showFinal(){
     finalShown = true;
     document.getElementById("finalText").style.opacity = 1;
 
-    for(let i=0;i<100;i++){
+    for(let i=0;i<50;i++){
         particles.push({
             x: Math.random()*canvas.width,
             y: Math.random()*canvas.height,
-            size: Math.random()*25+10,
-            speedX: (Math.random()-0.5)*1,
-            speedY: (Math.random()-0.5)*1,
+            size: Math.random()*20+8,
+            speedX: (Math.random()-0.5)*0.5,
+            speedY: (Math.random()-0.5)*0.5,
             life: Infinity,
             color: "red",
             sparkle: true
@@ -204,20 +188,19 @@ function showFinal(){
 
     const heart = document.getElementById("bigHeart");
     let interval = setInterval(()=>{
-        size += 10;
+        size += 5;
         heart.style.fontSize = size + "px";
-        if(size > window.innerHeight*0.9) clearInterval(interval);
+        if(size > window.innerHeight*0.7) clearInterval(interval);
     },50);
 
-    // создаём 3х6 текстов с отскоком и скоростью
     for(let r=0;r<3;r++){
         for(let i=0;i<textMessages.length;i++){
             texts.push({
                 text: textMessages[i],
                 x: Math.random()*(canvas.width-100)+50,
                 y: Math.random()*(canvas.height-50)+25,
-                vx: (Math.random()-0.5)*2,
-                vy: (Math.random()-0.5)*2,
+                vx: (Math.random()-0.5)*1.2,
+                vy: (Math.random()-0.5)*1.2,
                 opacity:1,
                 life: Infinity
             });
@@ -241,7 +224,6 @@ function createText(){
 function animate(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // частицы
     for(let i=particles.length-1;i>=0;i--){
         const p = particles[i];
         p.x += p.speedX;
@@ -251,7 +233,6 @@ function animate(){
         if(p.life <= 0 && p.life !== Infinity) particles.splice(i,1);
     }
 
-    // текст с отталкиванием
     for(let i=0;i<texts.length;i++){
         const t = texts[i];
         t.x += t.vx;
@@ -284,7 +265,7 @@ function animate(){
         }
 
         ctx.fillStyle="white";
-        ctx.font="20px 'Segoe UI'";
+        ctx.font="16px 'Segoe UI'";
         ctx.fillText(t.text,t.x,t.y);
     }
 
@@ -293,6 +274,5 @@ function animate(){
 
 animate();
 </script>
-
 </body>
 </html>
