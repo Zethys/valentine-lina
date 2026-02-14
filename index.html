@@ -28,12 +28,13 @@ canvas{
     top:0;
     left:0;
     z-index:0;
+    pointer-events:none; /* фикс кликов */
 }
 .big-heart{
     font-size:120px;
     cursor:pointer;
     user-select:none;
-    z-index:1;
+    z-index:2;
     transition:0.3s;
     animation:pulse 1.5s infinite;
 }
@@ -43,14 +44,13 @@ canvas{
     100%{transform:scale(1);}
 }
 .card{
-    z-index:1;
+    z-index:2;
     background:rgba(255,255,255,0.15);
     backdrop-filter:blur(10px);
     padding:25px;
     border-radius:20px;
     margin-top:15px;
     text-align:center;
-    transition:0.5s;
 }
 .final-text{
     position:absolute;
@@ -62,7 +62,7 @@ canvas{
     color:white;
     text-align:center;
     opacity:0;
-    z-index:2;
+    z-index:3;
     pointer-events:none;
 }
 </style>
@@ -119,34 +119,6 @@ function createParticle(){
     };
 }
 
-function createGradientParticle(){
-    const colors = ["#ff9ecb","#ff5e9c","#ffb3d9","#ff66a3"];
-    const color = colors[Math.floor(Math.random()*colors.length)];
-    return {
-        x: Math.random()*canvas.width,
-        y: Math.random()*canvas.height,
-        size: Math.random()*15+8,
-        speedX: (Math.random()-0.5)*1,
-        speedY: (Math.random()-0.5)*1,
-        life: finalShown ? Infinity : 180,
-        color: color,
-        sparkle: Math.random()<0.3
-    };
-}
-
-function createFallingHeart(x,y){
-    return {
-        x: x,
-        y: y,
-        size: Math.random()*15+5,
-        speedX: (Math.random()-0.5)*1,
-        speedY: Math.random()*2 + 1,
-        life: 180,
-        color: "red",
-        sparkle: true
-    };
-}
-
 function drawHeart(x,y,size,color,sparkle){
     ctx.fillStyle=color;
     ctx.beginPath();
@@ -176,72 +148,17 @@ function growHeart(){
         showFinal();
     }
 
-    for(let i=0;i<15;i++) particles.push(createParticle());
-    for(let i=0;i<5;i++) particles.push(createGradientParticle());
-
-    const rect = heart.getBoundingClientRect();
-    for(let i=0;i<8;i++) particles.push(createFallingHeart(rect.left + rect.width/2, rect.top + rect.height/2));
-
-    for(let i=0;i<2;i++) texts.push(createText());
+    for(let i=0;i<20;i++) particles.push(createParticle());
 }
 
 function showFinal(){
     finalShown = true;
     document.getElementById("finalText").style.opacity = 1;
-
-    for(let i=0;i<100;i++){
-        particles.push({
-            x: Math.random()*canvas.width,
-            y: Math.random()*canvas.height,
-            size: Math.random()*25+10,
-            speedX: (Math.random()-0.5)*1,
-            speedY: (Math.random()-0.5)*1,
-            life: Infinity,
-            color: "red",
-            sparkle: true
-        });
-    }
-
-    const heart = document.getElementById("bigHeart");
-    let interval = setInterval(()=>{
-        size += 10;
-        heart.style.fontSize = size + "px";
-        if(size > window.innerHeight*0.9) clearInterval(interval);
-    },50);
-
-    // создаём 3х6 текстов с отскоком и скоростью
-    for(let r=0;r<3;r++){
-        for(let i=0;i<textMessages.length;i++){
-            texts.push({
-                text: textMessages[i],
-                x: Math.random()*(canvas.width-100)+50,
-                y: Math.random()*(canvas.height-50)+25,
-                vx: (Math.random()-0.5)*2,
-                vy: (Math.random()-0.5)*2,
-                opacity:1,
-                life: Infinity
-            });
-        }
-    }
-}
-
-function createText(){
-    const message = textMessages[Math.floor(Math.random()*textMessages.length)];
-    return {
-        text: message,
-        x: Math.random()*canvas.width,
-        y: Math.random()*canvas.height,
-        vx: 0,
-        vy: 0,
-        opacity:1,
-        life: 180
-    };
 }
 
 function animate(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // частицы
     for(let i=particles.length-1;i>=0;i--){
         const p = particles[i];
         p.x += p.speedX;
@@ -249,43 +166,6 @@ function animate(){
         if(p.life !== Infinity) p.life--;
         drawHeart(p.x,p.y,p.size,p.color,p.sparkle);
         if(p.life <= 0 && p.life !== Infinity) particles.splice(i,1);
-    }
-
-    // текст с отталкиванием
-    for(let i=0;i<texts.length;i++){
-        const t = texts[i];
-        t.x += t.vx;
-        t.y += t.vy;
-
-        if(t.x < 0 || t.x > canvas.width-50) t.vx*=-1;
-        if(t.y < 0 || t.y > canvas.height-20) t.vy*=-1;
-
-        for(let j=i+1;j<texts.length;j++){
-            const o = texts[j];
-            const dx = t.x - o.x;
-            const dy = t.y - o.y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            const minDist = 80;
-            if(dist < minDist){
-                const angle = Math.atan2(dy, dx);
-                const overlap = 0.5*(minDist - dist);
-                t.x += Math.cos(angle)*overlap;
-                t.y += Math.sin(angle)*overlap;
-                o.x -= Math.cos(angle)*overlap;
-                o.y -= Math.sin(angle)*overlap;
-
-                const vxTemp = t.vx;
-                const vyTemp = t.vy;
-                t.vx = o.vx;
-                t.vy = o.vy;
-                o.vx = vxTemp;
-                o.vy = vyTemp;
-            }
-        }
-
-        ctx.fillStyle="white";
-        ctx.font="20px 'Segoe UI'";
-        ctx.fillText(t.text,t.x,t.y);
     }
 
     requestAnimationFrame(animate);
